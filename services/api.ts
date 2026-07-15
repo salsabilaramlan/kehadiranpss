@@ -77,9 +77,13 @@ export const fetchAttendanceData = async (): Promise<AttendanceRecord[]> => {
     const catatan = getProp(item, ['catatan', 'remarks', 'note', 'alasan', 'sebab', 'ulasan'], "");
 
     const parsedDate = new Date(timestamp);
-    const status = normalizeStatus(statusRaw);
+    // Dalam aliran NFC sedia ada, setiap penghantaran Google Form ialah bukti
+    // kehadiran. Apps Script tidak membekalkan lajur status, jadi rekod NFC yang
+    // lengkap ditandakan Hadir. Jika lajur status ditambah pada masa hadapan,
+    // nilai sebenar itu tetap dihormati.
+    const status = statusRaw ? normalizeStatus(statusRaw) : AttendanceStatus.HADIR;
 
-    // Rekod tidak lengkap tidak boleh dijadikan data kehadiran.
+    // Nama dan timestamp mesti datang daripada rekod sebenar Apps Script.
     if (!timestamp || Number.isNaN(parsedDate.getTime()) || !nama || !status) {
       console.warn(`Rekod baris ${index + 1} diketepikan kerana tidak lengkap atau tidak sah.`);
       return [];
