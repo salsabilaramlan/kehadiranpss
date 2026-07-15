@@ -42,7 +42,7 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({ data }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
       <div className="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h3 className="text-lg font-semibold text-slate-800">Senarai Kehadiran Terkini</h3>
+        <h3 className="text-lg font-semibold text-slate-800">Rekod Kehadiran Terkini</h3>
         
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative">
@@ -122,7 +122,7 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({ data }) => {
         </table>
       </div>
       <div className="p-4 border-t border-slate-100 bg-slate-50 text-xs text-slate-500 flex justify-between">
-         <span>Menunjukkan {Math.min(filteredData.length, 10)} daripada {filteredData.length} rekod terkini</span>
+         <span>Memaparkan {filteredData.length} rekod sah terkini</span>
       </div>
     </div>
   );

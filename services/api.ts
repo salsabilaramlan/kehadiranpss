@@ -25,18 +25,17 @@ const getProp = (item: any, lookups: string[], defaultValue: string = ""): strin
   return defaultValue;
 };
 
-const normalizeStatus = (status: string): AttendanceStatus => {
-  const s = status.toLowerCase();
+const normalizeStatus = (status: string): AttendanceStatus | null => {
+  const s = status.trim().toLowerCase();
+  if (!s) return null;
   if (s.includes('tidak') || s.includes('absent')) return AttendanceStatus.TIDAK_HADIR;
   if (s.includes('lewat') || s.includes('late')) return AttendanceStatus.LEWAT;
   if (s.includes('bertugas') || s.includes('duty')) return AttendanceStatus.BERTUGAS;
   if (s.includes('hadir') || s.includes('present') || s === 'y' || s === 'yes' || s === '/') return AttendanceStatus.HADIR;
-  return AttendanceStatus.HADIR; // Default
+  return null;
 };
 
 export const fetchAttendanceData = async (): Promise<AttendanceRecord[]> => {
-  console.log("Fetching from:", API_URL);
-  
   const response = await fetch(API_URL, {
     method: "GET",
     redirect: "follow",
@@ -47,8 +46,6 @@ export const fetchAttendanceData = async (): Promise<AttendanceRecord[]> => {
   }
 
   const json = await response.json();
-  console.log("Raw JSON received:", json);
-  
   let rawData: any[] = [];
 
   // Handle various JSON structures
@@ -71,21 +68,30 @@ export const fetchAttendanceData = async (): Promise<AttendanceRecord[]> => {
      return [];
   }
 
-  return rawData.map((item: any, index: number) => {
+  return rawData.flatMap((item: any, index: number): AttendanceRecord[] => {
     // Expanded lookup keywords for Malay Google Forms
-    const timestamp = getProp(item, ['timestamp', 'tarikh', 'date', 'time', 'masa', 'tanda masa'], new Date().toISOString());
-    const nama = getProp(item, ['nama', 'name', 'pengawas', 'student', 'peserta'], "Tanpa Nama");
-    const tingkatan = getProp(item, ['tingkatan', 'kelas', 'form', 'grade', 'darjah'], "Umum");
-    const statusRaw = getProp(item, ['status', 'kehadiran', 'attendance', 'hadir'], "Hadir");
+    const timestamp = getProp(item, ['timestamp', 'tarikh', 'date', 'time', 'masa', 'tanda masa']);
+    const nama = getProp(item, ['nama', 'name', 'pengawas', 'student', 'peserta']).trim();
+    const tingkatan = getProp(item, ['tingkatan', 'kelas', 'form', 'grade', 'darjah'], "Tidak dinyatakan").trim();
+    const statusRaw = getProp(item, ['status', 'kehadiran', 'attendance', 'hadir']);
     const catatan = getProp(item, ['catatan', 'remarks', 'note', 'alasan', 'sebab', 'ulasan'], "");
 
-    return {
-      id: item.id || `row-${index}-${Date.now()}`,
-      timestamp: timestamp,
-      nama: nama,
+    const parsedDate = new Date(timestamp);
+    const status = normalizeStatus(statusRaw);
+
+    // Rekod tidak lengkap tidak boleh dijadikan data kehadiran.
+    if (!timestamp || Number.isNaN(parsedDate.getTime()) || !nama || !status) {
+      console.warn(`Rekod baris ${index + 1} diketepikan kerana tidak lengkap atau tidak sah.`);
+      return [];
+    }
+
+    return [{
+      id: String(item.id || `row-${index}-${parsedDate.getTime()}`),
+      timestamp: parsedDate.toISOString(),
+      nama: nama.toUpperCase(),
       tingkatan: tingkatan,
-      status: normalizeStatus(statusRaw),
+      status,
       catatan: catatan
-    };
+    }];
   });
 };

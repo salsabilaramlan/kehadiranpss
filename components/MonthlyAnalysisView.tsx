@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { AttendanceRecord, AttendanceStatus } from '../types';
 import { STUDENT_MASTER_LIST, TOTAL_STUDENTS } from '../constants';
-import { Calendar, ChevronLeft, ChevronRight, Trophy, AlertCircle, CheckCircle2, Star, Sparkles } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, Star } from 'lucide-react';
 import { StudentAnalysisModal } from './StudentAnalysisModal';
 
 interface MonthlyAnalysisViewProps {
@@ -9,6 +9,7 @@ interface MonthlyAnalysisViewProps {
 }
 
 export const MonthlyAnalysisView: React.FC<MonthlyAnalysisViewProps> = ({ data }) => {
+  const normalizeName = (name: string) => name.trim().replace(/\s+/g, ' ').toUpperCase();
   // Initialize with current Malaysia time
   const [selectedDate, setSelectedDate] = useState(() => {
     const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }));
@@ -45,8 +46,7 @@ export const MonthlyAnalysisView: React.FC<MonthlyAnalysisViewProps> = ({ data }
     filteredRecords.forEach(record => {
       // Cari nama dalam master list untuk grouping yang tepat
       const matchedName = STUDENT_MASTER_LIST.find(
-        master => record.nama.toLowerCase().includes(master.toLowerCase()) || 
-                  master.toLowerCase().includes(record.nama.toLowerCase())
+        master => normalizeName(master) === normalizeName(record.nama)
       );
       
       // Jika tak jumpa dalam master list (jarang berlaku), guna nama asal
@@ -77,7 +77,6 @@ export const MonthlyAnalysisView: React.FC<MonthlyAnalysisViewProps> = ({ data }
         name: student,
         count: count,
         lastSeen: lastSeenMap.get(student) || null,
-        percentage: 0 // Placeholder kalau nak kira peratus
       };
     });
 
@@ -95,7 +94,7 @@ export const MonthlyAnalysisView: React.FC<MonthlyAnalysisViewProps> = ({ data }
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       
-       {/* Modal for AI Analysis */}
+       {/* Analisis rekod individu */}
       <StudentAnalysisModal 
         isOpen={!!selectedStudent}
         studentName={selectedStudent || ""}
