@@ -3,8 +3,8 @@ export const GAS_DEPLOYMENT_ID = "AKfycbw-LWBmZo4KIFDc2W3sHAojHG6m16S5YbnIE6CfC9
 
 export const API_URL = `https://script.google.com/macros/s/${GAS_DEPLOYMENT_ID}/exec`;
 
-export const APP_NAME = "Kehadiran Pengawas PSS";
-export const SCHOOL_NAME = "SK SATU SULTAN ALAM SHAH";
+export const APP_NAME = "e-PSS NFC";
+export const SCHOOL_NAME = "SK Satu Sultan Alam Shah";
 
 // Senarai Nama Induk (Master List)
 export const STUDENT_MASTER_LIST = [

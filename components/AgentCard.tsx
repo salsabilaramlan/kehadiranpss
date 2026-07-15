@@ -45,7 +45,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({ name, totalPresence, month
   }
 
   // Calculate days since logic (Using Malaysia Time)
-  let daysSinceDisplay = "Never";
+  let daysSinceDisplay = "Belum pernah";
   if (!isNeverSeen) {
      const nowMY = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }));
      const seenMY = new Date(new Date(lastSeen).toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }));
@@ -54,10 +54,10 @@ export const AgentCard: React.FC<AgentCardProps> = ({ name, totalPresence, month
      nowMY.setHours(0,0,0,0);
      seenMY.setHours(0,0,0,0);
      
-     const diffTime = Math.abs(nowMY.getTime() - seenMY.getTime());
+     const diffTime = Math.max(0, nowMY.getTime() - seenMY.getTime());
      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
      
-     daysSinceDisplay = diffDays === 0 ? 'Today' : `${diffDays}d ago`;
+     daysSinceDisplay = diffDays === 0 ? 'Hari ini' : `${diffDays} hari lalu`;
   }
 
   return (
@@ -75,7 +75,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({ name, totalPresence, month
               </span>
             ) : (
               <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${isNeverSeen ? 'bg-red-100 text-red-600 font-bold' : 'bg-slate-100 text-slate-500'}`}>
-                {isNeverSeen ? 'M.I.A' : `Last: ${daysSinceDisplay}`}
+                {isNeverSeen ? 'BELUM DIREKOD' : `Terakhir: ${daysSinceDisplay}`}
               </span>
             )}
           </div>
@@ -87,7 +87,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({ name, totalPresence, month
         
         <div className="flex items-center justify-between bg-slate-100 rounded-lg p-2 mb-2">
             <div className="text-center w-1/2 border-r border-slate-200">
-               <p className="text-[10px] uppercase text-slate-500 font-bold">Total</p>
+               <p className="text-[10px] uppercase text-slate-500 font-bold">Hari Keseluruhan</p>
                <p className="text-lg font-bold text-slate-800">{totalPresence}</p>
             </div>
             <div className="text-center w-1/2">

@@ -71,8 +71,11 @@ const App: React.FC = () => {
       `}>
         <div className="h-full flex flex-col">
           <div className="h-16 flex items-center px-6 border-b border-slate-700">
-            <Zap className="w-5 h-5 text-yellow-400 mr-2" />
-            <span className="font-bold text-lg tracking-wider">PSS OPS</span>
+            <Zap className="w-5 h-5 text-cyan-400 mr-2" />
+            <div>
+              <span className="font-bold text-lg tracking-wider">e-PSS NFC</span>
+              <p className="text-[9px] text-cyan-300 uppercase tracking-[0.22em]">Smart Attendance</p>
+            </div>
           </div>
 
           <nav className="flex-1 px-4 py-6 space-y-2">
@@ -85,7 +88,7 @@ const App: React.FC = () => {
               }`}
             >
               <LayoutDashboard className="w-5 h-5 mr-3" />
-              Command Center
+              Papan Pemuka
             </button>
 
             <button
@@ -107,7 +110,7 @@ const App: React.FC = () => {
               <p className="text-sm font-medium text-white truncate">{SCHOOL_NAME}</p>
               <div className="mt-2 flex items-center text-xs text-slate-400">
                 <Users className="w-3 h-3 mr-1" /> 
-                {TOTAL_STUDENTS} Active Slots
+                {TOTAL_STUDENTS} Pengawas Berdaftar
               </div>
             </div>
           </div>
@@ -127,7 +130,7 @@ const App: React.FC = () => {
               <Menu className="w-6 h-6" />
             </button>
             <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-              <span className="hidden sm:inline text-slate-400 font-normal">System:</span>
+              <span className="hidden sm:inline text-slate-400 font-normal">e-PSS NFC /</span>
               {getPageTitle()}
             </h1>
           </div>
@@ -135,13 +138,13 @@ const App: React.FC = () => {
           <div className="flex items-center space-x-4">
             {lastRefreshed && (
               <span className="hidden sm:inline text-xs font-mono text-slate-500">
-                SYNC: {lastRefreshed.toLocaleTimeString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur', hour: '2-digit', minute:'2-digit' })}
+                KEMAS KINI: {lastRefreshed.toLocaleTimeString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur', hour: '2-digit', minute:'2-digit' })}
               </span>
             )}
             <button 
               onClick={loadData}
               className="p-2 rounded-full text-slate-500 hover:bg-slate-100 hover:text-blue-600 transition-colors focus:outline-none"
-              title="Refresh System"
+              title="Muat semula data"
             >
               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin text-blue-600' : ''}`} />
             </button>
@@ -168,7 +171,7 @@ const App: React.FC = () => {
                     <div className="w-12 h-12 border-4 border-slate-200 rounded-full"></div>
                     <div className="w-12 h-12 border-4 border-blue-600 rounded-full animate-spin absolute top-0 left-0 border-t-transparent"></div>
                   </div>
-                  <p className="text-slate-500 font-medium mt-4 tracking-wider animate-pulse">INITIALIZING SYSTEM...</p>
+                  <p className="text-slate-500 font-medium mt-4 tracking-wider animate-pulse">MENYAMBUNG DATA NFC...</p>
                </div>
             ) : (
               <>

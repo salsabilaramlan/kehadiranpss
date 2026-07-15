@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { X, Sparkles, Calendar, TrendingUp, Clock, Award } from 'lucide-react';
+import { X, ClipboardCheck, Calendar, TrendingUp, Clock } from 'lucide-react';
 import { AttendanceRecord, AttendanceStatus } from '../types';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
@@ -11,15 +11,11 @@ interface StudentAnalysisModalProps {
 }
 
 export const StudentAnalysisModal: React.FC<StudentAnalysisModalProps> = ({ isOpen, onClose, studentName, data }) => {
-  if (!isOpen) return null;
-
   // --- ANALYTICS LOGIC ---
   const stats = useMemo(() => {
+    const normalizeName = (name: string) => name.trim().replace(/\s+/g, ' ').toUpperCase();
     // Filter records for this student
-    const records = data.filter(r => 
-      r.nama.toLowerCase().includes(studentName.toLowerCase()) || 
-      studentName.toLowerCase().includes(r.nama.toLowerCase())
-    );
+    const records = data.filter(r => normalizeName(r.nama) === normalizeName(studentName));
 
     // Sort by date desc
     records.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -39,30 +35,35 @@ export const StudentAnalysisModal: React.FC<StudentAnalysisModalProps> = ({ isOp
     // Initialize
     months.forEach(m => monthlyCounts[m] = 0);
 
+    const uniqueMonthlyDays = new Set<string>();
     records.forEach(r => {
         if (r.status !== AttendanceStatus.TIDAK_HADIR) {
             const date = new Date(new Date(r.timestamp).toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }));
             const monthIdx = date.getMonth();
             const key = months[monthIdx];
-            // Simple count for chart (not de-duped per day for chart smoothness, or can be if strictly needed)
-            monthlyCounts[key] = (monthlyCounts[key] || 0) + 1;
+            const dayKey = new Date(r.timestamp).toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' });
+            const uniqueKey = `${monthIdx}-${dayKey}`;
+            if (!uniqueMonthlyDays.has(uniqueKey)) {
+              uniqueMonthlyDays.add(uniqueKey);
+              monthlyCounts[key] = (monthlyCounts[key] || 0) + 1;
+            }
         }
     });
 
     const chartData = months.map(m => ({ name: m, hadir: monthlyCounts[m] }));
 
-    // 3. AI Insight Generation
-    let aiInsight = "";
+    // 3. Ringkasan berasaskan ambang rekod yang telus
+    let recordSummary = "";
     const reliability = totalDays;
     
     if (reliability > 30) {
-        aiInsight = "🌟 Prestasi Luar Biasa! Pelajar ini adalah aset utama PSS dengan rekod kehadiran yang sangat konsisten. Berpotensi dicalonkan untuk Anugerah Tokoh Nilam.";
+        recordSummary = "Rekod menunjukkan komitmen kehadiran yang sangat tinggi sepanjang tempoh direkodkan.";
     } else if (reliability > 15) {
-        aiInsight = "✨ Sangat Baik. Menunjukkan komitmen yang tinggi dalam menjalankan tugas. Teruskan momentum ini.";
+        recordSummary = "Rekod menunjukkan komitmen kehadiran yang tinggi dan konsisten.";
     } else if (reliability > 5) {
-        aiInsight = "👍 Prestasi Sederhana. Hadir bertugas tetapi boleh ditingkatkan lagi kekerapan untuk menjadi lebih mahir.";
+        recordSummary = "Kehadiran telah direkodkan secara berkala dan masih boleh dipertingkatkan.";
     } else {
-        aiInsight = "⚠️ Perlu Perhatian. Kehadiran agak rendah. Disarankan untuk diberi motivasi atau peringatan jadual bertugas.";
+        recordSummary = "Bilangan hari kehadiran yang direkodkan masih rendah. Semakan jadual bertugas disarankan.";
     }
 
     // Check Recency
@@ -71,12 +72,15 @@ export const StudentAnalysisModal: React.FC<StudentAnalysisModalProps> = ({ isOp
         const now = new Date();
         const diffDays = Math.ceil(Math.abs(now.getTime() - lastRec.getTime()) / (1000 * 60 * 60 * 24));
         
-        if (diffDays > 30) aiInsight += " Analisis mengesan tiada rekod kehadiran dalam 30 hari terakhir (MIA).";
-        else if (diffDays < 3) aiInsight += " Baru sahaja bertugas minggu ini. Aktif.";
+        if (diffDays > 30) recordSummary += " Tiada rekod baharu dalam 30 hari terakhir.";
+        else if (diffDays < 3) recordSummary += " Kehadiran terkini direkodkan dalam tiga hari terakhir.";
     }
 
-    return { totalDays, chartData, aiInsight, recentRecords: records.slice(0, 5) };
+    const activeMonths = chartData.filter(month => month.hadir > 0).length;
+    return { totalDays, activeMonths, chartData, recordSummary, recentRecords: records.slice(0, 5) };
   }, [studentName, data]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -98,15 +102,16 @@ export const StudentAnalysisModal: React.FC<StudentAnalysisModalProps> = ({ isOp
 
         <div className="p-6 space-y-6">
             
-            {/* AI Insight Box */}
+            {/* Ringkasan berdasarkan rekod */}
             <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-5 rounded-xl border border-indigo-100 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-3 opacity-10"><Sparkles className="w-24 h-24 text-indigo-600" /></div>
+                <div className="absolute top-0 right-0 p-3 opacity-10"><ClipboardCheck className="w-24 h-24 text-indigo-600" /></div>
                 <h3 className="text-indigo-900 font-bold flex items-center gap-2 mb-2 text-sm uppercase tracking-wider">
-                    <Sparkles className="w-4 h-4 text-indigo-600" /> AI Summary
+                    <ClipboardCheck className="w-4 h-4 text-indigo-600" /> Ringkasan Rekod
                 </h3>
                 <p className="text-slate-700 leading-relaxed font-medium relative z-10">
-                    "{stats.aiInsight}"
+                    {stats.recordSummary}
                 </p>
+                <p className="text-xs text-indigo-500 mt-3">Dijana daripada bilangan hari unik dalam rekod Apps Script, bukan ramalan AI.</p>
             </div>
 
             {/* Stats Grid */}
@@ -116,8 +121,8 @@ export const StudentAnalysisModal: React.FC<StudentAnalysisModalProps> = ({ isOp
                     <p className="text-3xl font-bold text-slate-800 mt-1">{stats.totalDays}</p>
                 </div>
                  <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
-                    <p className="text-slate-400 text-xs font-bold uppercase">Ketepatan Masa</p>
-                    <p className="text-3xl font-bold text-green-600 mt-1">---%</p>
+                    <p className="text-slate-400 text-xs font-bold uppercase">Bulan Aktif</p>
+                    <p className="text-3xl font-bold text-green-600 mt-1">{stats.activeMonths}</p>
                 </div>
             </div>
 
